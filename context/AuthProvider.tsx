@@ -1,5 +1,6 @@
 import { api } from '@/services/api';
 import * as SecureStore from 'expo-secure-store';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { jwtDecode } from 'jwt-decode';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -16,6 +17,11 @@ type AuthContextType = {
   signIn: (email: string, senha: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
+  biometricAvailable: boolean;
+  isBiometricEnabled: boolean;
+  enableBiometric: () => Promise<void>;
+  disableBiometric: () => Promise<void>;
+  signInWithBiometric: () => Promise<void>;
 };
 
 type TokenPayload = {
@@ -28,13 +34,28 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
-  // Separe o carregamento inicial do interceptor
+  // Verifica disponibilidade de biometria
+  useEffect(() => {
+    async function checkBiometric() {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      setBiometricAvailable(compatible && enrolled);
+    }
+    checkBiometric();
+  }, []);
+
+  // Carregamento inicial
   useEffect(() => {
     async function loadStoredAuth() {
       try {
         const storedToken = await SecureStore.getItemAsync('token');
         const storedUser = await SecureStore.getItemAsync('user');
+        const biometricEnabled = await SecureStore.getItemAsync('biometric_enabled');
+
+        setIsBiometricEnabled(biometricEnabled === 'true');
 
         if (storedToken) {
           const isValid = validateToken(storedToken);
@@ -69,7 +90,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Cleanup do interceptor
     return () => {
       api.interceptors.response.eject(interceptor);
     };
@@ -83,6 +103,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       await SecureStore.setItemAsync('token', token);
       await SecureStore.setItemAsync('user', JSON.stringify(userData));
+
+      // Se biometria estiver habilitada, salvar credenciais
+      if (isBiometricEnabled) {
+        await SecureStore.setItemAsync('biometric_email', email);
+        await SecureStore.setItemAsync('biometric_password', password);
+      }
 
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
@@ -102,6 +128,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const enableBiometric = async () => {
+    if (!biometricAvailable) {
+      throw new Error('Biometria não disponível neste dispositivo');
+    }
+
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Autentique-se para habilitar o login biométrico',
+        fallbackLabel: 'Usar senha',
+        cancelLabel: 'Cancelar',
+      });
+
+      if (result.success) {
+        await SecureStore.setItemAsync('biometric_enabled', 'true');
+        setIsBiometricEnabled(true);
+      } else {
+        throw new Error('Autenticação biométrica falhou');
+      }
+    } catch (error) {
+      console.error('Erro ao habilitar biometria:', error);
+      throw error;
+    }
+  };
+
+  const disableBiometric = async () => {
+    try {
+      await SecureStore.deleteItemAsync('biometric_enabled');
+      setIsBiometricEnabled(false);
+    } catch (error) {
+      console.error('Erro ao desabilitar biometria:', error);
+      throw error;
+    }
+  };
+
+  const signInWithBiometric = async () => {
+    if (!biometricAvailable || !isBiometricEnabled) {
+      throw new Error('Login biométrico não está habilitado');
+    }
+
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Faça login com sua biometria',
+        fallbackLabel: 'Usar senha',
+        cancelLabel: 'Cancelar',
+      });
+
+      if (result.success) {
+        // Recupera credenciais e faz login real
+        const email = await SecureStore.getItemAsync('biometric_email');
+        const password = await SecureStore.getItemAsync('biometric_password');
+        
+        if (email && password) {
+          await signIn(email, password);
+        } else {
+          throw new Error('Credenciais não encontradas');
+        }
+      }
+    } catch (error) {
+      console.error('Erro no login biométrico:', error);
+      throw error;
+    }
+  };
+
   function validateToken(token: string) {
     try {
       const decoded = jwtDecode<TokenPayload>(token);
@@ -112,7 +201,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, isAuthenticated: !!user }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        loading, 
+        signIn, 
+        signOut, 
+        isAuthenticated: !!user,
+        biometricAvailable,
+        isBiometricEnabled,
+        enableBiometric,
+        disableBiometric,
+        signInWithBiometric,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

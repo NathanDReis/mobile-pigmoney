@@ -5,10 +5,11 @@ import {
 } from '@/components';
 import { colors } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    Alert,
     Image,
     ScrollView,
     StyleSheet,
@@ -31,7 +32,7 @@ export default function Login() {
   const [celular, setCelular] = useState('(31) 98277-7939');
   const [confirmarSenha, setConfirmarSenha] = useState('Teste@2025');
   
-  const { signIn } = useAuth();
+  const { signIn, signInWithBiometric, biometricAvailable, isBiometricEnabled } = useAuth();
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -40,12 +41,13 @@ export default function Login() {
       router.replace('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
+      Alert.alert('Erro', 'Email ou senha incorretos');
     }
   };
 
   const handleRegister = async () => {
     if (senha !== confirmarSenha) {
-      console.error('As senhas não coincidem');
+      Alert.alert('Erro', 'As senhas não coincidem');
       return;
     }
     try {
@@ -61,6 +63,16 @@ export default function Login() {
       router.replace('/');
     } catch (error) {
       console.error('Erro ao registrar:', error);
+      Alert.alert('Erro', 'Erro ao criar conta');
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      await signInWithBiometric();
+      router.replace('/');
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Erro ao autenticar com biometria');
     }
   };
 
@@ -170,6 +182,17 @@ export default function Login() {
             onPress={handleLogin}
             title="Login"
           />
+
+          {/* Biometric Login Button */}
+          {biometricAvailable && isBiometricEnabled && (
+            <TouchableOpacity
+              style={styles.biometricButton}
+              onPress={handleBiometricLogin}
+            >
+              <MaterialIcons name="fingerprint" size={28} color={colors.primary} />
+              <Text style={styles.biometricText}>Entrar com biometria</Text>
+            </TouchableOpacity>
+          )}
         </>
       ) : (
         <>
@@ -360,11 +383,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.primary,
   },
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    marginTop: 15,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+  },
+  biometricText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
   divider: {
     textAlign: 'center',
     fontSize: 13,
     color: '#999',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   socialContainer: {
     flexDirection: 'row',

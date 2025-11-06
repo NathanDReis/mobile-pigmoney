@@ -4,6 +4,7 @@ import {
     DrawerSceneWrapper,
     Header
 } from "@/components";
+import { useAuth } from '@/context/AuthProvider';
 import {
     Feather,
     Ionicons,
@@ -11,6 +12,7 @@ import {
 } from '@expo/vector-icons';
 import React, { useState } from "react";
 import {
+    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -20,9 +22,33 @@ import {
 export default function Configuracoes() {
   const [vibrar, setVibrar] = useState(true);
   const [notificacoes, setNotificacoes] = useState(true);
-  const [biometria, setBiometria] = useState(false);
+  
+  const { 
+    biometricAvailable, 
+    isBiometricEnabled, 
+    enableBiometric, 
+    disableBiometric 
+  } = useAuth();
 
   const actionColor = "#1de9b6"; // ciano esverdeado
+
+  const handleToggleBiometric = (value: boolean) => {
+    if (!biometricAvailable) return;
+    
+    (async () => {
+      try {
+        if (value) {
+          await enableBiometric();
+          Alert.alert('Sucesso', 'Login biométrico habilitado');
+        } else {
+          await disableBiometric();
+          Alert.alert('Sucesso', 'Login biométrico desabilitado');
+        }
+      } catch (error: any) {
+        Alert.alert('Erro', error.message || 'Erro ao alterar configuração');
+      }
+    })();
+  };
 
   return (
     <DrawerSceneWrapper>
@@ -41,10 +67,14 @@ export default function Configuracoes() {
             <Text style={styles.switchText}>Vibrar</Text>
             <CustomSwitch value={vibrar} onValueChange={setVibrar} />
           </View>
+          
           <View style={styles.switchItem}>
             <MaterialIcons name="fingerprint" size={24} color="#666" />
             <Text style={styles.switchText}>Login por biometria</Text>
-            <CustomSwitch value={biometria} onValueChange={setBiometria} />
+            <CustomSwitch 
+              value={biometricAvailable && isBiometricEnabled} 
+              onValueChange={handleToggleBiometric}
+            />
           </View>
         </View>
 
@@ -105,14 +135,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 14,
     color: "#222",
-  },
-  // Custom Switch Styles
-  toggleAtivo: {
-    backgroundColor: '#f85a69',
-    alignItems: 'flex-end',
-  },
-  toggleDesativado: {
-    backgroundColor: '#ccc',
-    alignItems: 'flex-start',
   },
 });
