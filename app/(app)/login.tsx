@@ -56,13 +56,10 @@ export default function Login() {
         telephone: celular,
         email: email,
       };
-      const user = await UserService.create(newUser);
-      console.log('\x1b[2J');
-      console.log(user);
+      await UserService.create(newUser);
       await signIn(email, senha);
       router.replace('/');
     } catch (error) {
-      console.log(error);
       console.error('Erro ao registrar:', error);
     }
   };

@@ -1,6 +1,5 @@
 import { UserInterface, UserInterfaceResponse } from "@/models/user.interface";
 import { api } from "./api";
-import { AxiosResponse } from "axios";
 
 export class UserService {
     static async create(user: UserInterface): Promise<UserInterfaceResponse> {
