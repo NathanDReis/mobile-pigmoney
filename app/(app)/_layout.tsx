@@ -55,7 +55,7 @@ export default function Layout() {
           }}
         />
         <Drawer.Screen
-          name={user ? 'logout' : 'login'}
+          name={user ? '(auth)/logout' : '(auth)/login'}
           options={{
             drawerLabel: user ? 'Sair' : 'Entrar',
             drawerIcon: ({ color }) => (
@@ -64,7 +64,7 @@ export default function Layout() {
           }}
         />
         <Drawer.Screen
-          name={!user ? 'logout' : 'login'}
+          name={!user ? '(auth)/logout' : '(auth)/login'}
           options={{
             drawerLabel: user ? '' : '',
           }}
