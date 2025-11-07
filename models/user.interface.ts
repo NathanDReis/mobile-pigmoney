@@ -1,3 +1,5 @@
+import { CommonInterface } from "./common.interface";
+
 export interface UserInterface {
     password: string;
     userName: string;
@@ -7,11 +9,5 @@ export interface UserInterface {
     perfilId?: string;
 }
 
-export interface UserInterfaceResponse extends Omit<UserInterface, "password"> {
-  isDeleted: boolean;
-  deletedAt?: Date;
-  deletedBy?: string;
-  _id?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+export interface UserInterfaceResponse 
+extends Omit<UserInterface, "password">, CommonInterface { }

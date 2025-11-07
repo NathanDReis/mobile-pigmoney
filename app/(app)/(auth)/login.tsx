@@ -7,7 +7,7 @@ import { colors } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Alert,
     Image,
@@ -34,11 +34,6 @@ export default function Login() {
   
   const { signIn, signInWithBiometric, biometricAvailable, isBiometricEnabled } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!biometricAvailable || !isBiometricEnabled) return;
-    handleBiometricLogin();
-  }, [biometricAvailable, isBiometricEnabled]);
 
   const handleLogin = async () => {
     try {

@@ -1,7 +1,9 @@
-import { Slot, useRouter, useSegments } from 'expo-router';
-import { View, ActivityIndicator } from 'react-native';
-import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthProvider';
+import { PerfilInterfaceResponse } from '@/models/perfil.interface';
+import { PerfilService } from '@/services/perfil.service';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -11,13 +13,26 @@ function AppContent() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[1] === '(auth)';
+    const perfilValid = async () => {
+      const perfil: PerfilInterfaceResponse | null = user && user?.perfil ? (await PerfilService.findOne(user.perfil)) : null;
 
-    if (!user && !inAuthGroup) {
-      router.replace('/(app)/(auth)/login');
-    } else if (user && inAuthGroup) {
-      router.replace('/(app)/(tabs)/home');
+      const inAuthGroup = segments.length >= 2 && segments[1] === '(auth)';
+      if (!user && !inAuthGroup) {
+        router.replace('/(app)/(auth)/login');
+      } else if (user && inAuthGroup) {
+        router.replace('/(app)/(tabs)/home');
+      }
+
+      if (inAuthGroup || perfil?.permissions.includes('admin')) return;
+
+      const lastSegmentPosition = segments.length - 1;
+      const lastSegment = segments[lastSegmentPosition];
+      if (!perfil?.permissions || !perfil?.permissions.includes(lastSegment)) {
+        console.log("lhe falta permissões")
+      }
     }
+
+    perfilValid();    
   }, [user, segments, loading]);
 
   if (loading) {
