@@ -9,6 +9,7 @@ type User = {
   fullName: string,
   userName: string,
   telephone: string,
+  perfil: string,
 } | null;
 
 type AuthContextType = {
@@ -132,6 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
     } catch (error) {
+      console.error(error)
       throw error;
     }
   };

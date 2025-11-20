@@ -55,6 +55,15 @@ export default function Layout() {
           }}
         />
         <Drawer.Screen
+          name={'(auth)/upgrade'}
+          options={{
+            drawerLabel: 'Upgrade',
+            drawerIcon: ({ color }) => (
+                <Feather name="plus" size={20} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
           name={user ? '(auth)/logout' : '(auth)/login'}
           options={{
             drawerLabel: user ? 'Sair' : 'Entrar',
@@ -66,7 +75,7 @@ export default function Layout() {
         <Drawer.Screen
           name={!user ? '(auth)/logout' : '(auth)/login'}
           options={{
-            drawerLabel: user ? '' : '',
+            drawerLabel: '',
           }}
         />
       </Drawer>
