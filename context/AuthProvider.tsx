@@ -2,7 +2,7 @@ import { api } from '@/services/api';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { jwtDecode } from 'jwt-decode';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 type User = {
   email: string,
@@ -19,9 +19,12 @@ type AuthContextType = {
   isAuthenticated: boolean;
   biometricAvailable: boolean;
   isBiometricEnabled: boolean;
+  rememberMeSave: boolean;
+  emailSave: string;
   enableBiometric: () => Promise<void>;
   disableBiometric: () => Promise<void>;
   signInWithBiometric: () => Promise<void>;
+  tryBiometricOnce: () => Promise<void>;
 };
 
 type TokenPayload = {
@@ -36,6 +39,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+  const [rememberMeSave, setRememberMeSave] = useState(false);
+  const [emailSave, setEmailSave] = useState<string>('');
 
   // Verifica disponibilidade de biometria
   useEffect(() => {
@@ -54,9 +59,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const storedToken = await SecureStore.getItemAsync('token');
         const storedUser = await SecureStore.getItemAsync('user');
         const biometricEnabled = await SecureStore.getItemAsync('biometric_enabled');
-
+        const isRememberMe = await SecureStore.getItemAsync('is_remember_me_email');
+        
         setIsBiometricEnabled(biometricEnabled === 'true');
-
+        
+        if (!!isRememberMe && isRememberMe == 'true') {
+          const rememberMe = await SecureStore.getItemAsync('remember_me_email');
+          setRememberMeSave(true)
+          setEmailSave(rememberMe?.toString() ? rememberMe?.toString().replace(/['"]/g, '') : '');
+        }
+        
         if (storedToken) {
           const isValid = validateToken(storedToken);
           if (!isValid) {
@@ -103,6 +115,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       await SecureStore.setItemAsync('token', token);
       await SecureStore.setItemAsync('user', JSON.stringify(userData));
+      
+      const rememberMe = await SecureStore.getItemAsync('is_remember_me_email');
+      if (!!rememberMe && rememberMe == 'true') {
+        await SecureStore.setItemAsync('remember_me_email', email);
+      } else {
+        await SecureStore.deleteItemAsync('remember_me_email');
+      }
 
       // Se biometria estiver habilitada, salvar credenciais
       if (isBiometricEnabled) {
@@ -191,6 +210,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const biometricAttemptedRef = useRef(false);
+
+  const tryBiometricOnce = async () => {
+    if (biometricAttemptedRef.current) return;
+    if (!biometricAvailable || !isBiometricEnabled) return;
+
+    biometricAttemptedRef.current = true;
+    return signInWithBiometric();
+  };
+
+
   function validateToken(token: string) {
     try {
       const decoded = jwtDecode<TokenPayload>(token);
@@ -213,6 +243,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         enableBiometric,
         disableBiometric,
         signInWithBiometric,
+        tryBiometricOnce,
+        emailSave,
+        rememberMeSave
       }}
     >
       {children}

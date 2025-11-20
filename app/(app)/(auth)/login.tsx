@@ -1,3 +1,16 @@
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import {
     CustomButton,
     CustomInput,
@@ -5,47 +18,70 @@ import {
 } from '@/components';
 import { colors } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
 import { UserInterface } from '@/models/user.interface';
 import { UserService } from '@/services/user.service';
+import * as SecureStore from 'expo-secure-store';
 
 export default function Login() {
-  const [email, setEmail] = useState('admin@pigmoney.com');
-  const [senha, setSenha] = useState('Teste@2025');
+  // Imports Externos
+  const { 
+    signIn, 
+    signInWithBiometric,
+    tryBiometricOnce,
+    biometricAvailable, 
+    isBiometricEnabled,
+    emailSave,
+    rememberMeSave,
+  } = useAuth();
+  const router = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   
   // Register fields
-  const [nomeCompleto, setNomeCompleto] = useState('Nathan David Reis');
-  const [nomeUsuario, setNomeUsuario] = useState('Nathan');
-  const [celular, setCelular] = useState('(31) 98277-7939');
-  const [confirmarSenha, setConfirmarSenha] = useState('Teste@2025');
-  
-  const { signIn, signInWithBiometric, biometricAvailable, isBiometricEnabled } = useAuth();
-  const router = useRouter();
+  const [nomeCompleto, setNomeCompleto] = useState('');
+  const [nomeUsuario, setNomeUsuario] = useState('');
+  const [celular, setCelular] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+
+  // Salvando o email
+  const saveRememberMe = async (value: boolean): Promise<void> => {
+    try {
+      setRememberMe(value);
+      await SecureStore.setItemAsync('is_remember_me_email', value ? 'true' : 'false');
+    } catch (error) {
+      Alert.alert("Não foi possível salvar a configuração no momento.");
+    }
+  }
 
   useEffect(() => {
-    if (!biometricAvailable || !isBiometricEnabled) return;
-    handleBiometricLogin();
+    setEmail(emailSave);
+    setRememberMe(rememberMeSave);
+  }, [emailSave, rememberMeSave]);
+
+  const resetForm = (): void => {
+    setEmail('');
+    setSenha('');
+    setRememberMe(false);
+    setNomeCompleto('');
+    setNomeUsuario('');
+    setCelular('');
+    setConfirmarSenha('');
+  }
+
+  // Abrir modal de login por Biometria automaticamente
+  useEffect(() => {
+    tryBiometricOnce();
   }, [biometricAvailable, isBiometricEnabled]);
 
   const handleLogin = async () => {
     try {
       await signIn(email, senha);
+      resetForm();
       router.replace('/');
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
       Alert.alert('Erro', 'Email ou senha incorretos');
     }
   };
@@ -67,7 +103,6 @@ export default function Login() {
       await signIn(email, senha);
       router.replace('/');
     } catch (error) {
-      console.error('Erro ao registrar:', error);
       Alert.alert('Erro', 'Erro ao criar conta');
     }
   };
@@ -168,9 +203,9 @@ export default function Login() {
             <View style={styles.rememberMeContainer}>
               <CustomSwitch
                 value={rememberMe}
-                onValueChange={setRememberMe}
+                onValueChange={saveRememberMe}
               />
-              <Text style={styles.rememberMeText}>lembrar senha</Text>
+              <Text style={styles.rememberMeText}>lembrar email</Text>
             </View>
             <TouchableOpacity onPress={handleForgotPassword}>
               <Text style={styles.forgotPassword}>Esqueceu sua senha?</Text>
