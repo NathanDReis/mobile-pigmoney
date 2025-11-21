@@ -97,30 +97,6 @@ export default function Home() {
                 <Text style={styles.accountDetailValue}>-R$5.000,00</Text>
               </View>
             </View>
-
-            {/* Action Buttons */}
-            <View style={styles.actionButtons}>
-              <View style={styles.actionButtonsRow}>
-                <CustomButton
-                  title="Ver"
-                  variant="secondary"
-                  onPress={() => {}}
-                  style={styles.smallButton}
-                />
-                <CustomButton
-                  title="Depositar"
-                  variant="secondary"
-                  onPress={() => {}}
-                  style={styles.smallButton}
-                />
-                <CustomButton
-                  title="Add"
-                  color={colors.primary}
-                  onPress={() => {}}
-                  style={styles.addButton}
-                />
-              </View>
-            </View>
           </View>
 
           {/* Transactions List */}
@@ -270,7 +246,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#ffd06bff',
   },
   balanceSection: {
     flexDirection: 'row',

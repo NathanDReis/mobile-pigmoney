@@ -55,7 +55,7 @@ export default function Layout() {
           }}
         />
         <Drawer.Screen
-          name={'(auth)/upgrade'}
+          name={'upgrade'}
           options={{
             drawerLabel: 'Upgrade',
             drawerIcon: ({ color }) => (
