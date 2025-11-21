@@ -21,6 +21,7 @@ import {
 import DeleteAccountModal from '@/components/deleteAccountModal';
 import { UserService } from '@/services/user.service';
 import { useRouter } from "expo-router";
+import { colors } from "@/constants";
 
 export default function Configuracoes() {
   const [vibrar, setVibrar] = useState(true);
@@ -75,6 +76,10 @@ export default function Configuracoes() {
     router.navigate('/(app)/alterarSenha');
   };
 
+  const handleChangePerfil = () => {
+    router.navigate('/(app)/editarPerfil');
+  }
+
   return (
     <DrawerSceneWrapper>
       <Container>
@@ -109,7 +114,7 @@ export default function Configuracoes() {
             style={styles.actionItem}
             onPress={() => setShowDeleteModal(true)}
           >
-            <Ionicons name="person-circle-outline" size={28} color={actionColor} />
+            <Ionicons name="trash-bin" size={28} color={colors.error} />
             <Text style={styles.actionText}>Deletar conta</Text>
             <Feather name="chevron-right" size={24} color="#888" style={styles.chevron} />
           </TouchableOpacity>
@@ -119,6 +124,14 @@ export default function Configuracoes() {
           >
             <MaterialIcons name="lock-outline" size={28} color={actionColor} />
             <Text style={styles.actionText}>Configurar senha</Text>
+            <Feather name="chevron-right" size={24} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.actionItem}
+            onPress={handleChangePerfil}
+          >
+            <MaterialIcons name="edit" size={28} color={actionColor} />
+            <Text style={styles.actionText}>Editar perfil</Text>
             <Feather name="chevron-right" size={24} color="#888" style={styles.chevron} />
           </TouchableOpacity>
         </View>

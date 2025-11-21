@@ -1,4 +1,4 @@
-import { ChangeUserPassword, UserInterface, UserInterfaceResponse } from "@/models/user.interface";
+import { ChangeUserPassword, UpdateUserData, UserInterface, UserInterfaceResponse } from "@/models/user.interface";
 import { api } from "./api";
 
 export class UserService {
@@ -22,6 +22,15 @@ export class UserService {
         } catch (error: any) {
             console.log(error);
             throw new Error(error.response?.data?.message || 'Erro ao alterar senha');
+        }
+    }
+
+    static async update(data: UpdateUserData): Promise<any> {
+        try {
+        const response = await api.patch('/user', data);
+        return response.data;
+        } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Erro ao atualizar perfil');
         }
     }
 }

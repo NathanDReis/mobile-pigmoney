@@ -22,6 +22,7 @@ type AuthContextType = {
   isBiometricEnabled: boolean;
   rememberMeSave: boolean;
   emailSave: string;
+  updateUser: (newUserData: any) => Promise<void>;
   enableBiometric: () => Promise<void>;
   disableBiometric: () => Promise<void>;
   signInWithBiometric: () => Promise<void>;
@@ -232,6 +233,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
+  const updateUser = async (newUserData: any) => {
+    try {
+      setUser(newUserData);
+      await SecureStore.setItemAsync('user', JSON.stringify(newUserData));
+    } catch (error) {
+      console.error('Erro ao atualizar usuário no contexto:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider 
       value={{ 
@@ -247,7 +257,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signInWithBiometric,
         tryBiometricOnce,
         emailSave,
-        rememberMeSave
+        rememberMeSave,
+        updateUser
       }}
     >
       {children}

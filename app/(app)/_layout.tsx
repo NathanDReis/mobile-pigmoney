@@ -84,6 +84,12 @@ export default function Layout() {
             drawerLabel: '',
           }}
         />
+        <Drawer.Screen
+          name='editarPerfil'
+          options={{
+            drawerLabel: '',
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );

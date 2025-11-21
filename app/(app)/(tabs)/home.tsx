@@ -1,12 +1,13 @@
 import { 
   DrawerSceneWrapper, 
   Container,
-  CustomButton,
   Header
 } from '@/components';
 import { colors } from '@/constants';
 import { useAuth } from '@/context/AuthProvider';
+import { useProfileAvatar } from '@/hooks/useProfileAvatar';
 import { Feather } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -19,6 +20,14 @@ import {
 
 export default function Home() {
   const { user } = useAuth();
+  const { profileImage, refreshAvatar } = useProfileAvatar();
+
+  // Recarrega a imagem sempre que a tela ganhar foco
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshAvatar();
+    }, [])
+  );
 
   return (
     <DrawerSceneWrapper>
@@ -34,7 +43,11 @@ export default function Home() {
             <View style={styles.userHeader}>
               <View style={styles.userInfo}>
                 <Image
-                  source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
+                  source={
+                    profileImage 
+                      ? { uri: profileImage }
+                      : { uri: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }
+                  }
                   style={styles.avatar}
                 />
                 <View style={styles.userTextContainer}>

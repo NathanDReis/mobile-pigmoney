@@ -5,6 +5,7 @@ const colors = {
   text: '#000000',
   white: '#ffffff',
   error: 'tomato',
+  info: 'cyan'
 }
 
 export default colors;

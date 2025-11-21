@@ -15,3 +15,11 @@ export interface ChangeUserPassword {
     newPassword: string;
     currentPassword: string;
 }
+
+export interface UpdateUserData {
+  fullName?: string;
+  email?: string;
+  telephone?: string;
+  userName?: string;
+  perfilId?: string;
+}
