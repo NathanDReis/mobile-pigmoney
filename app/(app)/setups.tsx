@@ -18,16 +18,23 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
+import DeleteAccountModal from '@/components/deleteAccountModal';
+import { UserService } from '@/services/user.service';
+import { useRouter } from "expo-router";
 
 export default function Configuracoes() {
   const [vibrar, setVibrar] = useState(true);
   const [notificacoes, setNotificacoes] = useState(true);
-  
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const router = useRouter();
+
   const { 
     biometricAvailable, 
     isBiometricEnabled, 
     enableBiometric, 
-    disableBiometric 
+    disableBiometric,
+    user,
+    signOut
   } = useAuth();
 
   const actionColor = "#1de9b6"; // ciano esverdeado
@@ -48,6 +55,24 @@ export default function Configuracoes() {
         Alert.alert('Erro', error.message || 'Erro ao alterar configuração');
       }
     })();
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await UserService.delete();
+      Alert.alert('Conta deletada', 'Sua conta foi removida com sucesso', [
+        {
+          text: 'OK',
+          onPress: () => signOut(),
+        },
+      ]);
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const handleChangePassword = () => {
+    router.navigate('/(app)/alterarSenha');
   };
 
   return (
@@ -80,17 +105,30 @@ export default function Configuracoes() {
 
         {/* Ações principais com ícones - embaixo */}
         <View style={styles.section}>
-          <TouchableOpacity style={styles.actionItem}>
+          <TouchableOpacity 
+            style={styles.actionItem}
+            onPress={() => setShowDeleteModal(true)}
+          >
             <Ionicons name="person-circle-outline" size={28} color={actionColor} />
             <Text style={styles.actionText}>Deletar conta</Text>
             <Feather name="chevron-right" size={24} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionItem}>
+          <TouchableOpacity 
+            style={styles.actionItem}
+            onPress={handleChangePassword}
+          >
             <MaterialIcons name="lock-outline" size={28} color={actionColor} />
             <Text style={styles.actionText}>Configurar senha</Text>
             <Feather name="chevron-right" size={24} color="#888" style={styles.chevron} />
           </TouchableOpacity>
         </View>
+
+        <DeleteAccountModal
+          visible={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAccount}
+          username={user?.fullName || ''}
+        />
       </Container>
     </DrawerSceneWrapper>
   );

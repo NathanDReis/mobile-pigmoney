@@ -1,5 +1,4 @@
-import { UserInterface, UserInterfaceResponse } from "@/models/user.interface";
-import * as SecureStore from 'expo-secure-store';
+import { ChangeUserPassword, UserInterface, UserInterfaceResponse } from "@/models/user.interface";
 import { api } from "./api";
 
 export class UserService {
@@ -8,7 +7,21 @@ export class UserService {
         return result.data;
     }
 
-    static async findOneLocal(): Promise<any> {
-        return SecureStore.getItemAsync('user');
+    static async delete(): Promise<void> {
+        try {
+            await api.delete(`/user`);
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Erro ao deletar conta');
+        }
+    }
+
+    static async updatePassword(data: ChangeUserPassword): Promise<void> {
+        try {
+            const result = await api.patch('/user/change/password', data);
+            console.log(result);
+        } catch (error: any) {
+            console.log(error);
+            throw new Error(error.response?.data?.message || 'Erro ao alterar senha');
+        }
     }
 }

@@ -78,6 +78,12 @@ export default function Layout() {
             drawerLabel: '',
           }}
         />
+        <Drawer.Screen
+          name='alterarSenha'
+          options={{
+            drawerLabel: '',
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );

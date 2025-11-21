@@ -11,3 +11,7 @@ export interface UserInterface {
 
 export interface UserInterfaceResponse 
 extends Omit<UserInterface, "password">, CommonInterface { }
+export interface ChangeUserPassword {
+    newPassword: string;
+    currentPassword: string;
+}

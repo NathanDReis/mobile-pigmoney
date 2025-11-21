@@ -27,9 +27,7 @@ function AppContent() {
 
       const lastSegmentPosition = segments.length - 1;
       const lastSegment = segments[lastSegmentPosition];
-      console.log("\x1b[2J");
-      console.log(perfil);
-      console.log(lastSegment);
+
       if (!perfil?.permissions || !perfil?.permissions.includes(lastSegment)) {
         console.log("lhe falta permissões")
       }
